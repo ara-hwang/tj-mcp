@@ -1,12 +1,24 @@
 {
   "name": "tj-mcp",
   "version": "1.0.0",
-  "description": "태진 노래방 MCP 서버 - 곡 검색 및 신곡 조회",
+  "description": "태진 노래방 MCP 서버 - 반주곡 검색",
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ara-hwang/tj-mcp.git"
+  },
+  "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
     "cheerio": "^1.0.0",

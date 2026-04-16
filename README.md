@@ -40,7 +40,7 @@ node dist/index.js
   "mcpServers": {
     "tj-karaoke": {
       "command": "node",
-      "args": ["C:\\Dev\\tj-mcp\\dist\\index.js"]
+      "args": ["/path/to/tj-mcp/dist/index.js"]
     }
   }
 }
@@ -56,7 +56,7 @@ node dist/index.js
     "tj-karaoke": {
       "type": "stdio",
       "command": "node",
-      "args": ["C:\\Dev\\tj-mcp\\dist\\index.js"]
+      "args": ["/path/to/tj-mcp/dist/index.js"]
     }
   }
 }
@@ -77,7 +77,7 @@ node dist/index.js
 ```
 
 - `query` (string): 검색어
-- `searchType` (enum): `integrated` | `title` | `singer`
+- `searchType` (enum): `integrated` | `title` | `singer` (기본값 `integrated`)
 - `page` (number): 페이지 번호 (기본값 `1`)
 
 #### Output (JSON text)
@@ -86,7 +86,11 @@ node dist/index.js
 {
   "query": "미즈키 나나",
   "searchType": "integrated",
-  "total": 5,
+  "count": 5,
+  "pagination": {
+    "currentPage": 1,
+    "hasNext": false
+  },
   "retry": {
     "applied": true,
     "reason": "no_results_with_spaces",
@@ -110,7 +114,10 @@ node dist/index.js
 |---|---|---|
 | `query` | `string` | 원본 검색어 |
 | `searchType` | `"integrated" \| "title" \| "singer"` | 검색 타입 |
-| `total` | `number` | 반환된 곡 개수 |
+| `count` | `number` | 현재 페이지 반환 곡 수 |
+| `pagination.currentPage` | `number` | 현재 페이지 번호 |
+| `pagination.hasNext` | `boolean` | 다음 페이지 존재 여부 |
+| `pagination.totalPages` | `number` (optional) | 전체 페이지 수 (파싱 가능 시) |
 | `retry.applied` | `boolean` | 재시도 적용 여부 |
 | `retry.reason` | `"no_results_with_spaces"` (optional) | 재시도 사유 |
 | `retry.normalizedQuery` | `string` (optional) | 재시도 시 사용된 검색어 |

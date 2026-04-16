@@ -23,9 +23,16 @@ interface SearchRetryInfo {
   normalizedQuery?: string;
 }
 
+interface PaginationInfo {
+  currentPage: number;
+  hasNext: boolean;
+  totalPages?: number;
+}
+
 interface SearchResult {
   songs: Song[];
-  total: number;
+  count: number;
+  pagination: PaginationInfo;
   retry: SearchRetryInfo;
 }
 
@@ -48,6 +55,7 @@ function uniqueSongs(songs: Song[]): Song[] {
 async function fetchHtml(url: string, init?: RequestInit): Promise<string> {
   const res = await fetch(url, {
     ...init,
+    signal: AbortSignal.timeout(60_000),
     headers: {
       "User-Agent": USER_AGENT,
       ...(init?.headers as Record<string, string>),
@@ -90,7 +98,7 @@ async function fetchHtml(url: string, init?: RequestInit): Promise<string> {
   };
 
   const hasMojibake = (text: string): boolean => {
-    return /[�ÃÂ]{2,}/.test(text) || text.includes("怨�") || text.includes("�");
+    return /[\uFFFD\u00C3\u00C2]{2,}/.test(text) || text.includes("\uFFFD");
   };
 
   if (charset && charset.includes("euc")) {
@@ -246,6 +254,46 @@ function parseSongTable($: cheerio.CheerioAPI): Song[] {
   return songs;
 }
 
+const PAGE_SIZE = 30;
+
+function parsePagination(
+  $: cheerio.CheerioAPI,
+  currentPage: number,
+  songCount: number
+): PaginationInfo {
+  let maxPage = currentPage;
+
+  // href 기반 페이지 링크 탐색
+  $("a[href*='pageNo']").each((_, el) => {
+    const href = $(el).attr("href") || "";
+    const match = href.match(/pageNo=(\d+)/);
+    if (match) {
+      const p = parseInt(match[1], 10);
+      if (p > maxPage) maxPage = p;
+    }
+  });
+
+  // onclick 기반 페이지 링크 탐색
+  $("[onclick*='pageNo'], [onclick*='goPage']").each((_, el) => {
+    const onclick = $(el).attr("onclick") || "";
+    const nums = onclick.match(/\d+/g);
+    if (nums) {
+      for (const n of nums) {
+        const p = parseInt(n, 10);
+        if (p > 0 && p < 10000 && p > maxPage) maxPage = p;
+      }
+    }
+  });
+
+  const hasNext = maxPage > currentPage || songCount >= PAGE_SIZE;
+
+  return {
+    currentPage,
+    hasNext,
+    ...(maxPage > currentPage ? { totalPages: maxPage } : {}),
+  };
+}
+
 async function searchSongs(
   query: string,
   searchType: "title" | "singer" | "integrated",
@@ -258,15 +306,15 @@ async function searchSongs(
 
   const requestSearch = async (
     queryText: string
-  ): Promise<{ songs: Song[]; total: number }> => {
+  ): Promise<{ songs: Song[]; count: number; pagination: PaginationInfo }> => {
     const params = new URLSearchParams({
       nationType: "",
       strType,
       searchTxt: queryText,
       strWord: "",
       pageNo: String(page),
-      pageRowCnt: "30",
-      strSotrGubun: "ASC",
+      pageRowCnt: String(PAGE_SIZE),
+      strSotrGubun: "ASC", // TJ API 원본 파라미터명 (오타 아님)
       strSortType: "",
     });
 
@@ -275,16 +323,18 @@ async function searchSongs(
     );
     const $ = cheerio.load(html);
     const songs = uniqueSongs(parseSongTable($));
-    const total = songs.length;
+    const count = songs.length;
+    const pagination = parsePagination($, page, count);
 
-    return { songs, total };
+    return { songs, count, pagination };
   };
 
   const primary = await requestSearch(query);
   if (primary.songs.length > 0) {
     return {
       songs: primary.songs,
-      total: primary.total,
+      count: primary.count,
+      pagination: primary.pagination,
       retry: { applied: false },
     };
   }
@@ -295,7 +345,8 @@ async function searchSongs(
     if (fallback.songs.length > 0) {
       return {
         songs: fallback.songs,
-        total: fallback.total,
+        count: fallback.count,
+        pagination: fallback.pagination,
         retry: {
           applied: true,
           reason: "no_results_with_spaces",
@@ -307,7 +358,8 @@ async function searchSongs(
 
   return {
     songs: primary.songs,
-    total: primary.total,
+    count: primary.count,
+    pagination: primary.pagination,
     retry: { applied: false },
   };
 }
@@ -330,7 +382,7 @@ server.tool(
     query: z.string().describe("검색어 (곡 제목 또는 가수명)"),
     searchType: z
       .enum(["title", "singer", "integrated"])
-      .default("title")
+      .default("integrated")
       .describe(
         "검색 유형: integrated(통합검색), title(곡제목), singer(가수명)"
       ),
@@ -347,7 +399,8 @@ server.tool(
       const payload = {
         query,
         searchType,
-        total: result.total,
+        count: result.count,
+        pagination: result.pagination,
         retry: result.retry,
         songs: result.songs,
       };
@@ -360,6 +413,8 @@ server.tool(
         error: true,
         message: "검색 중 오류가 발생했습니다.",
         detail: msg,
+        query,
+        searchType,
       });
       return {
         content: [{ type: "text", text }],

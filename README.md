@@ -8,6 +8,7 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 ## Features
 
 - `search_songs`: 곡 검색 (통합/곡제목/가수명)
+- `lookup_song`: 곡번호 단건 조회
 - 검색 0건일 때 공백 제거 재시도 지원
   - 예: `미즈키 나나` -> `미즈키나나`
 
@@ -129,9 +130,45 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 | `songs[].lyricist` | `string` (optional) | 작사가 |
 | `songs[].composer` | `string` (optional) | 작곡가 |
 
+### 2) `lookup_song`
+
+#### Input
+
+```json
+{
+  "songNumber": "44656"
+}
+```
+
+- `songNumber` (string): 조회할 TJ 곡번호 (숫자만 허용)
+
+#### Output (JSON text)
+
+```json
+{
+  "songNumber": "44656",
+  "number": "44656",
+  "title": "Eternity",
+  "singer": "잠골버스(준헌)",
+  "lyricist": "이재혁",
+  "composer": "이재혁"
+}
+```
+
+#### Response fields
+
+| Field | Type | Description |
+|---|---|---|
+| `songNumber` | `string` | 입력으로 전달한 곡번호 |
+| `number` | `string` | 조회된 곡 번호 |
+| `title` | `string` | 곡 제목 |
+| `singer` | `string` | 가수명 |
+| `lyricist` | `string` (optional) | 작사가 |
+| `composer` | `string` (optional) | 작곡가 |
+
 ### Error response format
 
-두 도구 모두 실패 시 아래 형태의 JSON 문자열을 반환합니다.
+도구 호출 실패 시 아래 형태의 JSON 문자열을 반환합니다.
 
 ```json
 {

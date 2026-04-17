@@ -1,6 +1,6 @@
 {
   "name": "tj-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "태진 노래방 MCP 서버 - 반주곡 검색",
   "type": "module",
   "main": "dist/index.js",

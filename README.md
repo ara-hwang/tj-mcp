@@ -152,3 +152,25 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 ```bash
 npm run build
 ```
+
+## npm 배포 자동화 (GitHub Actions)
+
+`.github/workflows/npm-publish.yml` 워크플로우가 포함되어 있습니다.
+
+- 트리거
+  - `v*` 태그 푸시 (예: `v1.0.2`)
+  - 수동 실행 (`workflow_dispatch`)
+- 동작
+  - `npm ci` -> `npm run build` -> `npm test` -> `npm publish --provenance --access public`
+
+### 사전 설정
+
+1. npm access token 발급 (`Automation` 권장)
+2. GitHub 저장소 `Settings > Secrets and variables > Actions`에 `NPM_TOKEN` 추가
+
+### 배포 예시
+
+```bash
+git tag v1.0.2
+git push origin v1.0.2
+```

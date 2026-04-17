@@ -122,13 +122,18 @@ const PAGE_SIZE = 30;
 
 async function searchSongs(
   query: string,
-  searchType: "title" | "singer" | "integrated",
+  searchType: "title" | "singer" | "number" | "integrated",
   page: number = 1
 ): Promise<SearchResult> {
   // TJ 반주곡 검색
-  // strType: 0 = 통합, 1 = 곡제목, 2 = 가수명
-  const strType =
-    searchType === "title" ? "1" : searchType === "singer" ? "2" : "0";
+  // strType: 0 = 통합, 1 = 곡제목, 2 = 가수명, 16 = 곡번호
+  const strTypeMap: Record<string, string> = {
+    integrated: "0",
+    title: "1",
+    singer: "2",
+    number: "16",
+  };
+  const strType = strTypeMap[searchType] ?? "0";
 
   const requestSearch = async (
     queryText: string
@@ -235,6 +240,44 @@ server.tool(
         content: [{ type: "text", text }],
         isError: true,
       };
+    }
+  }
+);
+
+server.tool(
+  "lookup_song",
+  "태진 노래방 곡번호로 곡 정보 조회 - 곡번호를 입력하면 해당 곡의 제목, 가수, 작사가, 작곡가 정보를 반환합니다",
+  {
+    songNumber: z
+      .string()
+      .regex(/^\d+$/, "곡번호는 숫자만 입력 가능합니다")
+      .describe("조회할 곡번호 (숫자)"),
+  },
+  async ({ songNumber }) => {
+    try {
+      const result = await searchSongs(songNumber, "number", 1);
+      const song = result.songs.find((s) => s.number === songNumber);
+
+      if (!song) {
+        const text = toJsonText({
+          error: true,
+          message: "해당 곡번호의 곡을 찾을 수 없습니다.",
+          songNumber,
+        });
+        return { content: [{ type: "text", text }], isError: true };
+      }
+
+      const text = toJsonText({ songNumber, ...song });
+      return { content: [{ type: "text", text }] };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const text = toJsonText({
+        error: true,
+        message: "곡 조회 중 오류가 발생했습니다.",
+        detail: msg,
+        songNumber,
+      });
+      return { content: [{ type: "text", text }], isError: true };
     }
   }
 );

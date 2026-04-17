@@ -33,14 +33,14 @@ node dist/index.js
 
 ### Claude Desktop
 
-`claude_desktop_config.json`:
+`claude_desktop_config.json` (`%APPDATA%\Claude\claude_desktop_config.json`):
 
 ```json
 {
   "mcpServers": {
     "tj-karaoke": {
-      "command": "node",
-      "args": ["/path/to/tj-mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "tj-mcp"]
     }
   }
 }

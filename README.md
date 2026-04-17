@@ -16,24 +16,26 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 - Node.js 18+
 - npm
 
-## Install
-
-```bash
-npm install
-npm run build
-```
-
-## Run
-
-```bash
-node dist/index.js
-```
-
 ## MCP Client Config
 
 ### Claude Desktop
 
 `claude_desktop_config.json` (`%APPDATA%\Claude\claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "tj-karaoke": {
+      "command": "npx",
+      "args": ["-y", "tj-mcp"]
+    }
+  }
+}
+```
+
+### Cursor
+
+`.cursor/mcp.json` (프로젝트별) 또는 `~/.cursor/mcp.json` (전역):
 
 ```json
 {
@@ -55,8 +57,8 @@ node dist/index.js
   "mcp": {
     "tj-karaoke": {
       "type": "stdio",
-      "command": "node",
-      "args": ["/path/to/tj-mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "tj-mcp"]
     }
   }
 }

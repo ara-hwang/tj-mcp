@@ -3,6 +3,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as cheerio from "cheerio";
+import {
+  parsePagination,
+  parseSongTable,
+  uniqueSongs,
+  type PaginationInfo,
+  type Song,
+} from "./parser.js";
 
 // --- TJ Media Scraping ---
 
@@ -10,24 +17,10 @@ const TJ_BASE_URL = "https://www.tjmedia.com";
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
 
-interface Song {
-  number: string;
-  title: string;
-  singer: string;
-  lyricist?: string;
-  composer?: string;
-}
-
 interface SearchRetryInfo {
   applied: boolean;
   reason?: "no_results_with_spaces";
   normalizedQuery?: string;
-}
-
-interface PaginationInfo {
-  currentPage: number;
-  hasNext: boolean;
-  totalPages?: number;
 }
 
 interface SearchResult {
@@ -35,22 +28,6 @@ interface SearchResult {
   count: number;
   pagination: PaginationInfo;
   retry: SearchRetryInfo;
-}
-
-function uniqueSongs(songs: Song[]): Song[] {
-  const seen = new Set<string>();
-  const result: Song[] = [];
-
-  for (const song of songs) {
-    const key = `${song.number}|${song.title}|${song.singer}`;
-    if (seen.has(key)) {
-      continue;
-    }
-    seen.add(key);
-    result.push(song);
-  }
-
-  return result;
 }
 
 async function fetchHtml(url: string, init?: RequestInit): Promise<string> {
@@ -141,159 +118,7 @@ async function fetchHtml(url: string, init?: RequestInit): Promise<string> {
   return buf.toString("utf-8");
 }
 
-function parseSongTable($: cheerio.CheerioAPI): Song[] {
-  const songs: Song[] = [];
-
-  const pushSong = (
-    number: string,
-    title: string,
-    singer: string,
-    lyricist?: string,
-    composer?: string
-  ): void => {
-    const cleanNumber = number.trim();
-    const cleanTitle = title.trim();
-    const cleanSinger = singer.trim();
-    const cleanLyricist = lyricist?.trim();
-    const cleanComposer = composer?.trim();
-
-    if (!cleanNumber || !cleanTitle || !cleanSinger) {
-      return;
-    }
-
-    songs.push({
-      number: cleanNumber,
-      title: cleanTitle,
-      singer: cleanSinger,
-      lyricist: cleanLyricist,
-      composer: cleanComposer,
-    });
-  };
-
-  // 신규 TJ 반주곡 검색 결과 파싱
-  $(
-    ".music-search-list ul.chart-list-area li ul.grid-container.list, li.search-data-list ul.grid-container.list"
-  ).each((_, row) => {
-    const root = $(row);
-
-    const number =
-      root.find("li.grid-item .num2.pc").first().text().trim() ||
-      root
-        .find("li.grid-item .num2")
-        .first()
-        .text()
-        .replace("곡번호", "")
-        .trim();
-    const title = root
-      .find("li.grid-item.title3 p")
-      .last()
-      .text()
-      .replace(/\s+/g, " ")
-      .trim();
-    const singer = root
-      .find("li.grid-item.title4.singer span")
-      .first()
-      .text()
-      .replace(/\s+/g, " ")
-      .trim();
-    const lyricist = root
-      .find("li.grid-item.title5 span")
-      .first()
-      .text()
-      .replace(/\s+/g, " ")
-      .trim();
-    const composer = root
-      .find("li.grid-item.title6 span")
-      .first()
-      .text()
-      .replace(/\s+/g, " ")
-      .trim();
-
-    pushSong(number, title, singer, lyricist, composer);
-  });
-
-  if (songs.length > 0) {
-    return songs;
-  }
-
-  // TJ 미디어 검색 결과 테이블 파싱
-  // 일반적으로 테이블 행: 곡번호 | 곡제목 | 가수명 | 작사 | 작곡
-  $("table.board_type1 tbody tr, table.tbl_board tbody tr").each((_, row) => {
-    const cols = $(row).find("td");
-    if (cols.length >= 3) {
-      const number = $(cols[0]).text().trim();
-      const title = $(cols[1]).text().trim();
-      const singer = $(cols[2]).text().trim();
-      const lyricist = cols.length > 3 ? $(cols[3]).text().trim() : undefined;
-      const composer = cols.length > 4 ? $(cols[4]).text().trim() : undefined;
-
-      pushSong(number, title, singer, lyricist, composer);
-    }
-  });
-
-  // Fallback: 다른 테이블 구조 시도
-  if (songs.length === 0) {
-    $("table tr").each((i, row) => {
-      if (i === 0) return; // 헤더 스킵
-      const cols = $(row).find("td");
-      if (cols.length >= 3) {
-        const number = $(cols[0]).text().trim();
-        const title = $(cols[1]).text().trim();
-        const singer = $(cols[2]).text().trim();
-        const lyricist =
-          cols.length > 3 ? $(cols[3]).text().trim() : undefined;
-        const composer =
-          cols.length > 4 ? $(cols[4]).text().trim() : undefined;
-
-        if (number && /^\d+$/.test(number)) {
-          pushSong(number, title, singer, lyricist, composer);
-        }
-      }
-    });
-  }
-
-  return songs;
-}
-
 const PAGE_SIZE = 30;
-
-function parsePagination(
-  $: cheerio.CheerioAPI,
-  currentPage: number,
-  songCount: number
-): PaginationInfo {
-  let maxPage = currentPage;
-
-  // href 기반 페이지 링크 탐색
-  $("a[href*='pageNo']").each((_, el) => {
-    const href = $(el).attr("href") || "";
-    const match = href.match(/pageNo=(\d+)/);
-    if (match) {
-      const p = parseInt(match[1], 10);
-      if (p > maxPage) maxPage = p;
-    }
-  });
-
-  // onclick 기반 페이지 링크 탐색
-  $("[onclick*='pageNo'], [onclick*='goPage']").each((_, el) => {
-    const onclick = $(el).attr("onclick") || "";
-    const nums = onclick.match(/\d+/g);
-    if (nums) {
-      for (const n of nums) {
-        const p = parseInt(n, 10);
-        if (p > 0 && p < 10000 && p > maxPage) maxPage = p;
-      }
-    }
-  });
-
-  const hasNext = maxPage > currentPage || songCount >= PAGE_SIZE;
-
-  return {
-    currentPage,
-    hasNext,
-    ...(maxPage > currentPage ? { totalPages: maxPage } : {}),
-  };
-}
 
 async function searchSongs(
   query: string,
@@ -325,44 +150,33 @@ async function searchSongs(
     const $ = cheerio.load(html);
     const songs = uniqueSongs(parseSongTable($));
     const count = songs.length;
-    const pagination = parsePagination($, page, count);
+    const pagination = parsePagination($, page);
 
     return { songs, count, pagination };
   };
 
   const primary = await requestSearch(query);
   if (primary.songs.length > 0) {
-    return {
-      songs: primary.songs,
-      count: primary.count,
-      pagination: primary.pagination,
-      retry: { applied: false },
-    };
+    return { ...primary, retry: { applied: false } };
   }
 
   const compactQuery = query.replace(/\s+/g, "");
-  if (compactQuery !== query) {
-    const fallback = await requestSearch(compactQuery);
-    if (fallback.songs.length > 0) {
-      return {
-        songs: fallback.songs,
-        count: fallback.count,
-        pagination: fallback.pagination,
-        retry: {
-          applied: true,
-          reason: "no_results_with_spaces",
-          normalizedQuery: compactQuery,
-        },
-      };
-    }
+  if (compactQuery === query) {
+    return { ...primary, retry: { applied: false } };
   }
 
-  return {
-    songs: primary.songs,
-    count: primary.count,
-    pagination: primary.pagination,
-    retry: { applied: false },
+  const fallback = await requestSearch(compactQuery);
+  const retry: SearchRetryInfo = {
+    applied: true,
+    reason: "no_results_with_spaces",
+    normalizedQuery: compactQuery,
   };
+
+  if (fallback.songs.length > 0) {
+    return { ...fallback, retry };
+  }
+
+  return { ...primary, retry };
 }
 
 function toJsonText(value: unknown): string {

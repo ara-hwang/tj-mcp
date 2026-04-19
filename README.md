@@ -146,7 +146,6 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 ```json
 {
-  "songNumber": "44656",
   "number": "44656",
   "title": "Eternity",
   "singer": "잠골버스(준헌)",
@@ -159,7 +158,6 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 | Field | Type | Description |
 |---|---|---|
-| `songNumber` | `string` | 입력으로 전달한 곡번호 |
 | `number` | `string` | 조회된 곡 번호 |
 | `title` | `string` | 곡 제목 |
 | `singer` | `string` | 가수명 |

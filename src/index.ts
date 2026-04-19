@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -10,6 +13,15 @@ import {
   type PaginationInfo,
   type Song,
 } from "./parser.js";
+
+const PACKAGE_JSON_PATH = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "package.json"
+);
+const { version: PACKAGE_VERSION } = JSON.parse(
+  readFileSync(PACKAGE_JSON_PATH, "utf-8")
+) as { version: string };
 
 // --- TJ Media Scraping ---
 
@@ -192,14 +204,17 @@ function toJsonText(value: unknown): string {
 
 const server = new McpServer({
   name: "tj-karaoke",
-  version: "1.0.0",
+  version: PACKAGE_VERSION,
 });
 
 server.tool(
   "search_songs",
-  "태진 노래방 곡 검색 - 제목 또는 가수명으로 노래방 번호를 검색합니다",
+  "태진 노래방 곡 검색 - 통합/곡제목/가수명으로 검색해 노래방 번호와 곡 정보를 반환합니다",
   {
-    query: z.string().describe("검색어 (곡 제목 또는 가수명)"),
+    query: z
+      .string()
+      .min(1, "검색어는 1자 이상이어야 합니다")
+      .describe("검색어 (곡 제목 또는 가수명)"),
     searchType: z
       .enum(["title", "singer", "integrated"])
       .default("integrated")
@@ -267,7 +282,7 @@ server.tool(
         return { content: [{ type: "text", text }], isError: true };
       }
 
-      const text = toJsonText({ songNumber, ...song });
+      const text = toJsonText(song);
       return { content: [{ type: "text", text }] };
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);

@@ -2,7 +2,7 @@
 
 ### Overview
 
-This is **tj-mcp**, a single-file MCP (Model Context Protocol) server that searches TJ Media (태진) karaoke songs. It scrapes `tjmedia.com` and returns structured JSON results via stdio transport. There is only one source file (`src/index.ts`) and one MCP tool: `search_songs`.
+This is **tj-mcp**, an MCP (Model Context Protocol) server that searches TJ Media (태진) karaoke songs. It scrapes `tjmedia.com` and returns structured JSON results via **Streamable HTTP** transport (Express). Tools: `search_songs`, `lookup_song`.
 
 ### Build & Run
 
@@ -10,20 +10,26 @@ Standard commands are in `README.md` and `package.json`. Quick reference:
 
 - **Install**: `npm install`
 - **Build**: `npm run build` (runs `tsc`, outputs to `dist/`)
-- **Start**: `node dist/index.js` (stdio-based MCP server, not an HTTP server)
+- **Start**: `node dist/index.js` (HTTP server, default `http://127.0.0.1:3000/mcp`)
+- **Environment**: `MCP_HOST` (default `127.0.0.1`), `MCP_PORT` (default `3000`)
 
 ### Testing the MCP Server
 
-There are no automated test suites in this project. To verify the server works, send JSON-RPC messages over stdin:
+Parser unit tests: `npm test`. To verify the HTTP MCP server:
 
 ```bash
-printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}\n{"jsonrpc":"2.0","method":"notifications/initialized"}\n{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"search_songs","arguments":{"query":"아이유","searchType":"singer","page":1}}}\n' | node dist/index.js 2>/dev/null
+npm run build
+node dist/index.js &
+curl -s -X POST http://127.0.0.1:3000/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}'
 ```
 
 ### Gotchas
 
-- The server communicates via **stdio only** (no HTTP port). You must pipe JSON-RPC messages to stdin and read responses from stdout.
-- `stderr` is used for logging (`console.error`), not for MCP protocol messages.
-- Search results depend on live network access to `tjmedia.com`. If the site is down or network is unavailable, the tool returns a JSON error object instead of throwing.
+- The server listens on HTTP (not stdio). Clients must use a Streamable HTTP URL (e.g. `http://127.0.0.1:3000/mcp`).
+- Bind to all interfaces with `MCP_HOST=0.0.0.0` for containers; consider network exposure.
+- Search results depend on live network access to `tjmedia.com`. If the site is down or network is unavailable, tools return a JSON error object instead of throwing.
 - There is no lint configuration (no ESLint/Prettier). TypeScript strict mode (`tsc`) is the only static check.
 - The project uses ESM (`"type": "module"` in `package.json`).

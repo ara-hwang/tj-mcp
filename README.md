@@ -17,11 +17,42 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 - Node.js 18+
 - npm
 
+## Run
+
+```bash
+npm install
+npm run build
+npm start
+```
+
+기본 주소: `http://127.0.0.1:3000/mcp`
+
+| 환경 변수 | 기본값 | 설명 |
+|---|---|---|
+| `MCP_HOST` | `127.0.0.1` | 바인딩 호스트 (`0.0.0.0` = 모든 인터페이스) |
+| `MCP_PORT` | `3000` | HTTP 포트 |
+
+헬스 체크: `GET http://127.0.0.1:3000/health`
+
 ## MCP Client Config
 
-### Claude Desktop
+서버를 먼저 실행한 뒤, 클라이언트에서 Streamable HTTP URL로 연결합니다.
 
-`claude_desktop_config.json` (`%APPDATA%\Claude\claude_desktop_config.json`):
+### Cursor
+
+`.cursor/mcp.json` (프로젝트별) 또는 `~/.cursor/mcp.json` (전역):
+
+```json
+{
+  "mcpServers": {
+    "tj-karaoke": {
+      "url": "http://127.0.0.1:3000/mcp"
+    }
+  }
+}
+```
+
+로컬에서 프로세스를 자동 기동하려면:
 
 ```json
 {
@@ -34,16 +65,17 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 }
 ```
 
-### Cursor
+(`npx tj-mcp`는 HTTP 서버를 띄웁니다. Cursor가 `url`과 `command`를 함께 지원하는 경우 위 설정을 사용하세요.)
 
-`.cursor/mcp.json` (프로젝트별) 또는 `~/.cursor/mcp.json` (전역):
+### Claude Desktop
+
+Claude Desktop이 Streamable HTTP를 지원하는 경우:
 
 ```json
 {
   "mcpServers": {
     "tj-karaoke": {
-      "command": "npx",
-      "args": ["-y", "tj-mcp"]
+      "url": "http://127.0.0.1:3000/mcp"
     }
   }
 }
@@ -57,9 +89,8 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 {
   "mcp": {
     "tj-karaoke": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "tj-mcp"]
+      "type": "http",
+      "url": "http://127.0.0.1:3000/mcp"
     }
   }
 }
@@ -186,6 +217,17 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 ```bash
 npm run build
+npm test
+```
+
+### HTTP 수동 테스트
+
+```bash
+npm start &
+curl -s -X POST http://127.0.0.1:3000/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}'
 ```
 
 ## npm 배포 자동화 (GitHub Actions)

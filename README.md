@@ -1,9 +1,18 @@
 # tj-mcp
 
-TJ Media (태진) 노래방 검색용 MCP 서버입니다.
+TJ Media (태진) 노래방 검색용 [MCP](https://modelcontextprotocol.io/) 서버입니다.
 
 최신 TJ 웹 경로(`https://www.tjmedia.com/song/accompaniment`) 기반으로 동작하며,
 MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
+
+- [기능](#features)
+- [요구 사항](#requirements)
+- [클라이언트 설정](#mcp-client-config)
+- [도구 API](#tools)
+- [개발](#dev)
+- [기여하기](#contributing)
+- [변경 이력](#changelog)
+- [라이선스](#license)
 
 ## Features
 
@@ -196,17 +205,59 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 ## Dev
 
+### 프로젝트 구조
+
+| 경로 | 설명 |
+|------|------|
+| `src/index.ts` | MCP 서버 및 도구 핸들러 |
+| `src/scrape.ts` | TJ 사이트 fetch·재시도·검색 |
+| `src/parser.ts` | 검색 결과 HTML 파싱 |
+| `tests/` | 파서·스크래핑·stdio 통합 테스트 |
+| `tests/fixtures/` | 파서용 HTML 스냅샷 |
+
+### 명령어
+
 ```bash
 npm install
-npm run build
-npm test
+npm run build   # tsc → dist/
+npm start       # node dist/index.js (stdio)
+npm test        # build + node --test
 ```
 
-통합 테스트 중 TJ 사이트 네트워크 호출은 `TJ_INTEGRATION=1`일 때만 실행됩니다.
+로컬에서 TJ 라이브 연동 테스트까지 실행:
 
 ```bash
 TJ_INTEGRATION=1 npm test
 ```
+
+CI(`.github/workflows/ci.yml`)는 push/PR 시 Node 22에서 `TJ_INTEGRATION=1`로 전체 테스트를 돌립니다.
+
+### 로컬 클라이언트 연결 (개발용)
+
+저장소를 클론한 뒤 빌드하고, MCP 설정에서 `dist/index.js` 절대 경로를 지정합니다.
+
+```json
+{
+  "mcpServers": {
+    "tj-karaoke-dev": {
+      "command": "node",
+      "args": ["/path/to/tj-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+## Contributing
+
+버그 수정, 파서 개선, 도구 추가 등 기여 절차는 [CONTRIBUTING.md](./CONTRIBUTING.md)를 참고하세요.
+
+## Changelog
+
+버전별 변경 사항은 [CHANGELOG.md](./CHANGELOG.md)를 참고하세요.
+
+## License
+
+[MIT](./LICENSE)
 
 ## npm 배포 자동화 (GitHub Actions)
 

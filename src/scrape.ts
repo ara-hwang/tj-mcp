@@ -64,7 +64,7 @@ async function decodeHtmlResponse(res: Response): Promise<string> {
     const utf8Probe = buf.toString("utf8", 0, Math.min(buf.length, 4096));
     const charsetFromMeta = utf8Probe
       .toLowerCase()
-      .match(/charset\s*=\s*['\"]?([a-z0-9\-_]+)/)?.[1];
+      .match(/charset\s*=\s*['"]?([a-z0-9\-_]+)/)?.[1];
     charset = charsetFromMeta;
   }
 
@@ -172,38 +172,51 @@ async function fetchHtml(url: string, init?: RequestInit): Promise<string> {
 
 const PAGE_SIZE = 30;
 
+// TJ 반주곡 검색 strType: 0=통합, 1=곡제목, 2=가수명, 16=곡번호
+const STR_TYPE_MAP: Record<SearchType, string> = {
+  integrated: "0",
+  title: "1",
+  singer: "2",
+  number: "16",
+};
+
+/** TJ 검색 결과 페이지 URL (fixture 스냅샷·디버깅용) */
+export function buildSearchUrl(
+  query: string,
+  searchType: SearchType,
+  page: number = 1
+): string {
+  const params = new URLSearchParams({
+    nationType: "",
+    strType: STR_TYPE_MAP[searchType],
+    searchTxt: query,
+    strWord: "",
+    pageNo: String(page),
+    pageRowCnt: String(PAGE_SIZE),
+    strSotrGubun: "ASC", // TJ API 원본 파라미터명 (오타 아님)
+    strSortType: "",
+  });
+  return `${TJ_BASE_URL}/song/accompaniment_search?${params.toString()}`;
+}
+
+/** TJ 검색 결과 HTML (파서 fixture 갱신용) */
+export async function fetchSearchPageHtml(
+  query: string,
+  searchType: SearchType,
+  page: number = 1
+): Promise<string> {
+  return fetchHtml(buildSearchUrl(query, searchType, page));
+}
+
 export async function searchSongs(
   query: string,
   searchType: SearchType,
   page: number = 1
 ): Promise<SearchResult> {
-  // TJ 반주곡 검색
-  // strType: 0 = 통합, 1 = 곡제목, 2 = 가수명, 16 = 곡번호
-  const strTypeMap: Record<string, string> = {
-    integrated: "0",
-    title: "1",
-    singer: "2",
-    number: "16",
-  };
-  const strType = strTypeMap[searchType] ?? "0";
-
   const requestSearch = async (
     queryText: string
   ): Promise<{ songs: Song[]; count: number; pagination: PaginationInfo }> => {
-    const params = new URLSearchParams({
-      nationType: "",
-      strType,
-      searchTxt: queryText,
-      strWord: "",
-      pageNo: String(page),
-      pageRowCnt: String(PAGE_SIZE),
-      strSotrGubun: "ASC", // TJ API 원본 파라미터명 (오타 아님)
-      strSortType: "",
-    });
-
-    const html = await fetchHtml(
-      `${TJ_BASE_URL}/song/accompaniment_search?${params.toString()}`
-    );
+    const html = await fetchSearchPageHtml(queryText, searchType, page);
     const $ = cheerio.load(html);
     const songs = uniqueSongs(parseSongTable($));
     const count = songs.length;

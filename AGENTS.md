@@ -1,5 +1,7 @@
 ## Cursor Cloud specific instructions
 
+Human-oriented setup, testing, and PR workflow: **[CONTRIBUTING.md](./CONTRIBUTING.md)**. User-facing tool API: **[README.md](./README.md)**.
+
 ### Overview
 
 This is **tj-mcp**, an MCP (Model Context Protocol) server that searches TJ Media (태진) karaoke songs. It scrapes `tjmedia.com` and returns structured JSON results via stdio transport.
@@ -23,7 +25,9 @@ Standard commands are in `README.md` and `package.json`. Quick reference:
 - **Install**: `npm install`
 - **Build**: `npm run build` (runs `tsc`, outputs to `dist/`)
 - **Start**: `node dist/index.js` (stdio-based MCP server, not an HTTP server)
+- **Lint**: `npm run lint` (ESLint + Prettier check)
 - **Test**: `npm test` (parser unit tests + MCP stdio integration tests)
+- **Fixture snapshot**: `npm run snapshot-fixture -- -q "..." --search-type singer -o tests/fixtures/foo.html`
 
 ### Testing the MCP Server
 
@@ -49,7 +53,9 @@ printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion
 
 - The server communicates via **stdio only** (no HTTP port). Pipe JSON-RPC messages to stdin and read responses from stdout.
 - `stderr` is used for logging (`console.error`), not for MCP protocol messages.
-- Search results depend on live network access to `tjmedia.com`. Parser tests use HTML fixtures only; the `lookup_song` live-network integration test runs only when `TJ_INTEGRATION=1` (set in CI).
-- There is no lint configuration (no ESLint/Prettier). TypeScript strict mode (`tsc`) is the only static check.
+- Search results depend on live network access to `tjmedia.com`. Parser tests use HTML fixtures only; live-network MCP tests (`lookup_song` miss, `search_songs` number `28329`) run only when `TJ_INTEGRATION=1` (set in CI).
+- MCP `initialize` returns `instructions` (searchType usage hints).
+- **Lint**: ESLint 9 flat config + Prettier (`npm run lint`). TypeScript strict mode (`tsc`) via `npm run build`.
 - The project uses ESM (`"type": "module"` in `package.json`).
 - Requires **Node.js 20+** (`engines` in `package.json`).
+- **Contributing / releases**: see [CONTRIBUTING.md](./CONTRIBUTING.md) (branch workflow, fixtures, `TJ_INTEGRATION`, npm tag publish).

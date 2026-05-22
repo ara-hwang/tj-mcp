@@ -1,0 +1,66 @@
+name: Bug report
+description: 검색·조회 오류, MCP 응답 문제
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        재현 가능한 최소 예시를 적어 주세요. 민감한 정보는 포함하지 마세요.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 문제 설명
+      placeholder: 기대한 동작 vs 실제 동작
+    validations:
+      required: true
+
+  - type: input
+    id: tool
+    attributes:
+      label: MCP 도구
+      placeholder: search_songs 또는 lookup_song
+    validations:
+      required: true
+
+  - type: textarea
+    id: arguments
+    attributes:
+      label: 도구 인자 (JSON)
+      description: '예: {"query": "아이유", "searchType": "singer", "page": 1}'
+    validations:
+      required: true
+
+  - type: textarea
+    id: response
+    attributes:
+      label: 실제 응답 (JSON text 일부)
+      description: content[0].text 내용을 붙여넣기
+
+  - type: input
+    id: version
+    attributes:
+      label: tj-mcp 버전
+      placeholder: "1.2.0 또는 npx 최신"
+
+  - type: dropdown
+    id: client
+    attributes:
+      label: MCP 클라이언트
+      options:
+        - Cursor
+        - Claude Desktop
+        - OpenCode
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: network
+    attributes:
+      label: 환경
+      options:
+        - label: tjmedia.com 에 직접 접속 가능
+          required: false
+        - label: TJ_INTEGRATION=1 npm test 로 재현 시도함
+          required: false

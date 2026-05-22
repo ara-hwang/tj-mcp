@@ -129,10 +129,8 @@ export function parseSongTable($: cheerio.CheerioAPI): Song[] {
         const number = $(cols[0]).text().trim();
         const title = $(cols[1]).text().trim();
         const singer = $(cols[2]).text().trim();
-        const lyricist =
-          cols.length > 3 ? $(cols[3]).text().trim() : undefined;
-        const composer =
-          cols.length > 4 ? $(cols[4]).text().trim() : undefined;
+        const lyricist = cols.length > 3 ? $(cols[3]).text().trim() : undefined;
+        const composer = cols.length > 4 ? $(cols[4]).text().trim() : undefined;
 
         if (number && /^\d+$/.test(number)) {
           pushSong(number, title, singer, lyricist, composer);

@@ -5,6 +5,10 @@
     "node": ">=20"
   },
   "description": "태진 노래방 MCP 서버 - 반주곡 검색",
+  "homepage": "https://github.com/ara-hwang/tj-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/ara-hwang/tj-mcp/issues"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,13 +18,19 @@
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
     "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "lint": "eslint . && prettier --check .",
+    "lint:fix": "eslint . --fix && prettier --write .",
+    "snapshot-fixture": "npm run build && node scripts/snapshot-fixture.mjs",
     "test": "npm run build && node --test \"tests/**/*.test.mjs\"",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run lint && npm run build && npm test"
   },
   "repository": {
     "type": "git",
@@ -33,7 +43,13 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.28.0",
     "@types/node": "^22.0.0",
-    "typescript": "^5.8.0"
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "globals": "^16.2.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.33.0"
   }
 }

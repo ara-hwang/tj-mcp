@@ -1,9 +1,22 @@
 # tj-mcp
 
-TJ Media (태진) 노래방 검색용 MCP 서버입니다.
+[![CI](https://github.com/ara-hwang/tj-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/ara-hwang/tj-mcp/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/tj-mcp.svg)](https://www.npmjs.com/package/tj-mcp)
+[![Node](https://img.shields.io/node/v/tj-mcp.svg)](https://www.npmjs.com/package/tj-mcp)
+
+TJ Media (태진) 노래방 검색용 [MCP](https://modelcontextprotocol.io/) 서버입니다.
 
 최신 TJ 웹 경로(`https://www.tjmedia.com/song/accompaniment`) 기반으로 동작하며,
 MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
+
+- [기능](#features)
+- [요구 사항](#requirements)
+- [클라이언트 설정](#mcp-client-config)
+- [도구 API](#tools)
+- [개발](#dev)
+- [기여하기](#contributing)
+- [변경 이력](#changelog)
+- [라이선스](#license)
 
 ## Features
 
@@ -114,24 +127,24 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 #### Response fields
 
-| Field | Type | Description |
-|---|---|---|
-| `query` | `string` | 원본 검색어 |
-| `searchType` | `"integrated" \| "title" \| "singer" \| "number"` | 검색 타입 |
-| `count` | `number` | 현재 페이지 반환 곡 수 |
-| `pagination.currentPage` | `number` | 현재 페이지 번호 |
-| `pagination.hasNext` | `boolean` | 다음 페이지 존재 여부 |
-| `pagination.totalPages` | `number` (optional) | 전체 페이지 수 (파싱 가능 시) |
-| `retry.applied` | `boolean` | 공백 제거 재시도 적용 여부 (`searchType`이 `number`면 항상 `false`) |
-| `retry.reason` | `"no_results_with_spaces"` (optional) | 공백 제거 재시도 사유 |
-| `retry.normalizedQuery` | `string` (optional) | 공백 제거 재시도 시 사용된 검색어 |
+| Field                    | Type                                              | Description                                                         |
+| ------------------------ | ------------------------------------------------- | ------------------------------------------------------------------- |
+| `query`                  | `string`                                          | 원본 검색어                                                         |
+| `searchType`             | `"integrated" \| "title" \| "singer" \| "number"` | 검색 타입                                                           |
+| `count`                  | `number`                                          | 현재 페이지 반환 곡 수                                              |
+| `pagination.currentPage` | `number`                                          | 현재 페이지 번호                                                    |
+| `pagination.hasNext`     | `boolean`                                         | 다음 페이지 존재 여부                                               |
+| `pagination.totalPages`  | `number` (optional)                               | 전체 페이지 수 (파싱 가능 시)                                       |
+| `retry.applied`          | `boolean`                                         | 공백 제거 재시도 적용 여부 (`searchType`이 `number`면 항상 `false`) |
+| `retry.reason`           | `"no_results_with_spaces"` (optional)             | 공백 제거 재시도 사유                                               |
+| `retry.normalizedQuery`  | `string` (optional)                               | 공백 제거 재시도 시 사용된 검색어                                   |
 
 > HTTP 429/5xx·네트워크 오류에 대한 fetch 재시도는 서버 내부 동작이며, 응답 JSON의 `retry` 필드에는 포함되지 않습니다.
-| `songs[].number` | `string` | 곡 번호 |
-| `songs[].title` | `string` | 곡 제목 |
-| `songs[].singer` | `string` | 가수명 |
-| `songs[].lyricist` | `string` (optional) | 작사가 |
-| `songs[].composer` | `string` (optional) | 작곡가 |
+> | `songs[].number` | `string` | 곡 번호 |
+> | `songs[].title` | `string` | 곡 제목 |
+> | `songs[].singer` | `string` | 가수명 |
+> | `songs[].lyricist` | `string` (optional) | 작사가 |
+> | `songs[].composer` | `string` (optional) | 작곡가 |
 
 ### 2) `lookup_song`
 
@@ -159,13 +172,13 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 #### Response fields
 
-| Field | Type | Description |
-|---|---|---|
-| `number` | `string` | 조회된 곡 번호 |
-| `title` | `string` | 곡 제목 |
-| `singer` | `string` | 가수명 |
-| `lyricist` | `string` (optional) | 작사가 |
-| `composer` | `string` (optional) | 작곡가 |
+| Field      | Type                | Description    |
+| ---------- | ------------------- | -------------- |
+| `number`   | `string`            | 조회된 곡 번호 |
+| `title`    | `string`            | 곡 제목        |
+| `singer`   | `string`            | 가수명         |
+| `lyricist` | `string` (optional) | 작사가         |
+| `composer` | `string` (optional) | 작곡가         |
 
 ### Error response format
 
@@ -196,17 +209,61 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 ## Dev
 
+### 프로젝트 구조
+
+| 경로              | 설명                            |
+| ----------------- | ------------------------------- |
+| `src/index.ts`    | MCP 서버 및 도구 핸들러         |
+| `src/scrape.ts`   | TJ 사이트 fetch·재시도·검색     |
+| `src/parser.ts`   | 검색 결과 HTML 파싱             |
+| `tests/`          | 파서·스크래핑·stdio 통합 테스트 |
+| `tests/fixtures/` | 파서용 HTML 스냅샷              |
+
+### 명령어
+
 ```bash
 npm install
-npm run build
-npm test
+npm run build        # tsc → dist/
+npm run lint         # ESLint + Prettier check
+npm start            # node dist/index.js (stdio)
+npm test             # build + node --test
+npm run snapshot-fixture -- -q "아이유" --search-type singer -o tests/fixtures/page1_iu.html
 ```
 
-통합 테스트 중 TJ 사이트 네트워크 호출은 `TJ_INTEGRATION=1`일 때만 실행됩니다.
+로컬에서 TJ 라이브 연동 테스트까지 실행:
 
 ```bash
 TJ_INTEGRATION=1 npm test
 ```
+
+CI(`.github/workflows/ci.yml`)는 push/PR 시 Node 22에서 `TJ_INTEGRATION=1`로 전체 테스트를 돌립니다.
+
+### 로컬 클라이언트 연결 (개발용)
+
+저장소를 클론한 뒤 빌드하고, MCP 설정에서 `dist/index.js` 절대 경로를 지정합니다.
+
+```json
+{
+  "mcpServers": {
+    "tj-karaoke-dev": {
+      "command": "node",
+      "args": ["/path/to/tj-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+## Contributing
+
+버그 수정, 파서 개선, 도구 추가 등 기여 절차는 [CONTRIBUTING.md](./CONTRIBUTING.md)를 참고하세요.
+
+## Changelog
+
+버전별 변경 사항은 [CHANGELOG.md](./CHANGELOG.md)를 참고하세요.
+
+## License
+
+[MIT](./LICENSE)
 
 ## npm 배포 자동화 (GitHub Actions)
 

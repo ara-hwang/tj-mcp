@@ -14,7 +14,7 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 20+ (CI uses Node 22)
 - npm
 
 ## MCP Client Config

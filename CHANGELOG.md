@@ -1,5 +1,17 @@
 # Changelog
 
+All notable changes are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
+
+## [Unreleased]
+
+### Added
+
+- `CONTRIBUTING.md` (로컬 개발, 테스트, PR, 릴리스 가이드)
+
+### Changed
+
+- `README.md`, `AGENTS.md` 문서 정리 및 상호 링크
+
 ## [1.2.0] - 2026-05-22
 
 ### Added

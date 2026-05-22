@@ -1,5 +1,7 @@
 ## Cursor Cloud specific instructions
 
+Human-oriented setup, testing, and PR workflow: **[CONTRIBUTING.md](./CONTRIBUTING.md)**. User-facing tool API: **[README.md](./README.md)**.
+
 ### Overview
 
 This is **tj-mcp**, an MCP (Model Context Protocol) server that searches TJ Media (태진) karaoke songs. It scrapes `tjmedia.com` and returns structured JSON results via stdio transport.
@@ -53,3 +55,4 @@ printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion
 - There is no lint configuration (no ESLint/Prettier). TypeScript strict mode (`tsc`) is the only static check.
 - The project uses ESM (`"type": "module"` in `package.json`).
 - Requires **Node.js 20+** (`engines` in `package.json`).
+- **Contributing / releases**: see [CONTRIBUTING.md](./CONTRIBUTING.md) (branch workflow, fixtures, `TJ_INTEGRATION`, npm tag publish).

@@ -27,17 +27,17 @@ const server = new McpServer({
 
 server.tool(
   "search_songs",
-  "태진 노래방 곡 검색 - 통합/곡제목/가수명으로 검색해 노래방 번호와 곡 정보를 반환합니다",
+  "태진 노래방 곡 검색 - 통합/곡제목/가수명/곡번호로 검색해 노래방 번호와 곡 정보를 반환합니다",
   {
     query: z
       .string()
       .min(1, "검색어는 1자 이상이어야 합니다")
-      .describe("검색어 (곡 제목 또는 가수명)"),
+      .describe("검색어 (곡 제목, 가수명, 또는 곡번호)"),
     searchType: z
-      .enum(["title", "singer", "integrated"])
+      .enum(["title", "singer", "integrated", "number"])
       .default("integrated")
       .describe(
-        "검색 유형: integrated(통합검색), title(곡제목), singer(가수명)"
+        "검색 유형: integrated(통합), title(곡제목), singer(가수명), number(곡번호)"
       ),
     page: z
       .number()

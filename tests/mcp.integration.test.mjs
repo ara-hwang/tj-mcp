@@ -85,6 +85,11 @@ test("MCP: tools/list exposes search_songs and lookup_song", async () => {
   const list = responseForId(responses, 2);
   const names = list.result.tools.map((t) => t.name).sort();
   assert.deepEqual(names, ["lookup_song", "search_songs"]);
+
+  const searchTool = list.result.tools.find((t) => t.name === "search_songs");
+  const searchTypes =
+    searchTool.inputSchema.properties.searchType.enum ?? [];
+  assert.ok(searchTypes.includes("number"));
 });
 
 test("MCP: lookup_song invalid songNumber returns validation error", async () => {

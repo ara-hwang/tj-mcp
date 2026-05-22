@@ -7,7 +7,8 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 ## Features
 
-- `search_songs`: 곡 검색 (통합/곡제목/가수명)
+- `search_songs`: 곡 검색 (통합/곡제목/가수명/곡번호)
+- HTTP 429·5xx·일시적 네트워크 오류 시 지수 백오프 재시도 (최대 3회)
 - `lookup_song`: 곡번호 단건 조회
 - 검색 0건일 때 공백 제거 재시도 지원
   - 예: `미즈키 나나` -> `미즈키나나`
@@ -80,7 +81,7 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 ```
 
 - `query` (string): 검색어
-- `searchType` (enum): `integrated` | `title` | `singer` (기본값 `integrated`)
+- `searchType` (enum): `integrated` | `title` | `singer` | `number` (기본값 `integrated`)
 - `page` (number): 페이지 번호 (기본값 `1`)
 
 #### Output (JSON text)
@@ -116,7 +117,7 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 | Field | Type | Description |
 |---|---|---|
 | `query` | `string` | 원본 검색어 |
-| `searchType` | `"integrated" \| "title" \| "singer"` | 검색 타입 |
+| `searchType` | `"integrated" \| "title" \| "singer" \| "number"` | 검색 타입 |
 | `count` | `number` | 현재 페이지 반환 곡 수 |
 | `pagination.currentPage` | `number` | 현재 페이지 번호 |
 | `pagination.hasNext` | `boolean` | 다음 페이지 존재 여부 |

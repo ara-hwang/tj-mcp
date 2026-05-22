@@ -12,7 +12,8 @@ Source layout:
 
 MCP tools:
 
-- `search_songs` — search by title/singer/integrated (with space-stripping retry)
+- `search_songs` — search by title/singer/integrated/number (space-stripping retry except `number`)
+- TJ fetch retries transient HTTP 429/5xx and network errors (exponential backoff, max 3 attempts)
 - `lookup_song` — lookup by song number
 
 ### Build & Run

@@ -26,3 +26,5 @@ jobs:
 
       - name: Test
         run: npm test
+        env:
+          TJ_INTEGRATION: "1"

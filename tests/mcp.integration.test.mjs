@@ -122,7 +122,44 @@ test("MCP: lookup_song invalid songNumber returns validation error", async () =>
   assert.match(call.result.content[0].text, /곡번호는 숫자만/);
 });
 
-test("MCP: lookup_song missing song returns JSON error payload", async () => {
+test("MCP: search_songs number query rejects non-digits", async () => {
+  const responses = await sendRpc([
+    JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0.0" },
+      },
+    }),
+    JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }),
+    JSON.stringify({
+      jsonrpc: "2.0",
+      id: 2,
+      method: "tools/call",
+      params: {
+        name: "search_songs",
+        arguments: {
+          query: "not-a-number",
+          searchType: "number",
+        },
+      },
+    }),
+  ]);
+
+  const call = responseForId(responses, 2);
+  assert.equal(call.result.isError, true);
+  const payload = JSON.parse(call.result.content[0].text);
+  assert.equal(payload.error, true);
+  assert.match(payload.message, /숫자만/);
+});
+
+test("MCP: lookup_song missing song returns JSON error payload", async (t) => {
+  if (process.env.TJ_INTEGRATION !== "1") {
+    t.skip("TJ_INTEGRATION=1 required for live network test");
+  }
   const responses = await sendRpc([
     JSON.stringify({
       jsonrpc: "2.0",

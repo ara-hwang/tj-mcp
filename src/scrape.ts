@@ -29,6 +29,16 @@ export type SearchType = "title" | "singer" | "number" | "integrated";
 const MAX_FETCH_ATTEMPTS = 3;
 const RETRY_BASE_MS = 500;
 
+/** TJ 반주곡 검색 결과 HTML인지 휴리스틱 검사 (fixture 스냅샷·디코딩 검증용) */
+export function isValidTjSearchHtml(html: string): boolean {
+  return (
+    html.includes("반주곡") ||
+    html.includes("곡 제목") ||
+    html.includes("검색어") ||
+    html.includes("TJ미디어")
+  );
+}
+
 export function isRetryableHttpStatus(status: number): boolean {
   return status === 429 || (status >= 500 && status <= 599);
 }
@@ -76,15 +86,6 @@ async function decodeHtmlResponse(res: Response): Promise<string> {
     }
   };
 
-  const looksValidTjPage = (text: string): boolean => {
-    return (
-      text.includes("반주곡") ||
-      text.includes("곡 제목") ||
-      text.includes("검색어") ||
-      text.includes("TJ미디어")
-    );
-  };
-
   const hasMojibake = (text: string): boolean => {
     return /[\uFFFD\u00C3\u00C2]{2,}/.test(text) || text.includes("\uFFFD");
   };
@@ -102,8 +103,8 @@ async function decodeHtmlResponse(res: Response): Promise<string> {
       const eucText = decodeWith("euc-kr");
       if (
         eucText &&
-        looksValidTjPage(eucText) &&
-        (!looksValidTjPage(utfText) || hasMojibake(utfText))
+        isValidTjSearchHtml(eucText) &&
+        (!isValidTjSearchHtml(utfText) || hasMojibake(utfText))
       ) {
         return eucText;
       }
@@ -114,7 +115,11 @@ async function decodeHtmlResponse(res: Response): Promise<string> {
   const utfText = decodeWith("utf-8");
   const eucText = decodeWith("euc-kr");
 
-  if (eucText && looksValidTjPage(eucText) && !looksValidTjPage(utfText)) {
+  if (
+    eucText &&
+    isValidTjSearchHtml(eucText) &&
+    !isValidTjSearchHtml(utfText)
+  ) {
     return eucText;
   }
 

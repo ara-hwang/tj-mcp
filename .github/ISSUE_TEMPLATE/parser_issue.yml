@@ -1,7 +1,6 @@
 name: Parser / TJ site change
 description: HTML 구조 변경, 파싱 누락·깨짐
 title: "[Parser]: "
-labels: ["parser"]
 body:
   - type: markdown
     attributes:

@@ -9,7 +9,7 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { fetchSearchPageHtml } from "../dist/scrape.js";
+import { fetchSearchPageHtml, isValidTjSearchHtml } from "../dist/scrape.js";
 
 const SEARCH_TYPES = new Set(["integrated", "title", "singer", "number"]);
 
@@ -52,5 +52,11 @@ console.error(
 );
 
 const html = await fetchSearchPageHtml(query, searchType, page);
+if (!isValidTjSearchHtml(html)) {
+  console.error(
+    "error: response does not look like a TJ search page (missing 반주곡/곡 제목/검색어/TJ미디어 markers)"
+  );
+  process.exit(1);
+}
 writeFileSync(outPath, html, "utf8");
 console.error(`Wrote ${html.length} bytes to ${outPath}`);

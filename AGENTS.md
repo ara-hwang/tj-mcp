@@ -49,7 +49,7 @@ printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion
 
 - The server communicates via **stdio only** (no HTTP port). Pipe JSON-RPC messages to stdin and read responses from stdout.
 - `stderr` is used for logging (`console.error`), not for MCP protocol messages.
-- Search results depend on live network access to `tjmedia.com`. Integration tests include one optional network call for `lookup_song`; parser tests use HTML fixtures only.
+- Search results depend on live network access to `tjmedia.com`. Parser tests use HTML fixtures only; the `lookup_song` live-network integration test runs only when `TJ_INTEGRATION=1` (set in CI).
 - There is no lint configuration (no ESLint/Prettier). TypeScript strict mode (`tsc`) is the only static check.
 - The project uses ESM (`"type": "module"` in `package.json`).
 - Requires **Node.js 20+** (`engines` in `package.json`).

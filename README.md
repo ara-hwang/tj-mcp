@@ -122,9 +122,11 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 | `pagination.currentPage` | `number` | 현재 페이지 번호 |
 | `pagination.hasNext` | `boolean` | 다음 페이지 존재 여부 |
 | `pagination.totalPages` | `number` (optional) | 전체 페이지 수 (파싱 가능 시) |
-| `retry.applied` | `boolean` | 재시도 적용 여부 |
-| `retry.reason` | `"no_results_with_spaces"` (optional) | 재시도 사유 |
-| `retry.normalizedQuery` | `string` (optional) | 재시도 시 사용된 검색어 |
+| `retry.applied` | `boolean` | 공백 제거 재시도 적용 여부 (`searchType`이 `number`면 항상 `false`) |
+| `retry.reason` | `"no_results_with_spaces"` (optional) | 공백 제거 재시도 사유 |
+| `retry.normalizedQuery` | `string` (optional) | 공백 제거 재시도 시 사용된 검색어 |
+
+> HTTP 429/5xx·네트워크 오류에 대한 fetch 재시도는 서버 내부 동작이며, 응답 JSON의 `retry` 필드에는 포함되지 않습니다.
 | `songs[].number` | `string` | 곡 번호 |
 | `songs[].title` | `string` | 곡 제목 |
 | `songs[].singer` | `string` | 가수명 |
@@ -167,7 +169,16 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 ### Error response format
 
-도구 호출 실패 시 아래 형태의 JSON 문자열을 반환합니다.
+오류는 두 가지 형태로 반환됩니다.
+
+**1) MCP 입력 검증 실패** (Zod 스키마 위반, 예: 잘못된 `songNumber`)
+
+- `tools/call` 결과의 `content[0].text`에 `MCP error -32602: Input validation error: ...` 형태의 **일반 텍스트**
+- `isError: true`
+
+**2) 도구 실행 실패** (TJ 조회 실패, HTTP 오류, 비즈니스 규칙 위반)
+
+- `content[0].text`에 아래와 같은 **JSON 문자열**
 
 ```json
 {
@@ -186,7 +197,15 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 ## Dev
 
 ```bash
+npm install
 npm run build
+npm test
+```
+
+통합 테스트 중 TJ 사이트 네트워크 호출은 `TJ_INTEGRATION=1`일 때만 실행됩니다.
+
+```bash
+TJ_INTEGRATION=1 npm test
 ```
 
 ## npm 배포 자동화 (GitHub Actions)
@@ -194,7 +213,7 @@ npm run build
 `.github/workflows/npm-publish.yml` 워크플로우가 포함되어 있습니다.
 
 - 트리거
-  - `v*` 태그 푸시 (예: `v1.0.2`)
+  - `v*` 태그 푸시 (예: `v1.2.0`)
   - 수동 실행 (`workflow_dispatch`)
 - 동작
   - `npm ci` -> `npm run build` -> `npm test` -> `npm publish --provenance --access public`
@@ -207,6 +226,6 @@ npm run build
 ### 배포 예시
 
 ```bash
-git tag v1.0.2
-git push origin v1.0.2
+git tag v1.2.0
+git push origin v1.2.0
 ```

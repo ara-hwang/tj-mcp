@@ -32,6 +32,8 @@ jobs:
 
       - name: Test
         run: npm test
+        env:
+          TJ_INTEGRATION: "1"
 
       - name: Publish package
         run: npm publish --provenance --access public

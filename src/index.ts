@@ -47,6 +47,16 @@ server.tool(
       .describe("페이지 번호 (기본값: 1)"),
   },
   async ({ query, searchType, page }) => {
+    if (searchType === "number" && !/^\d+$/.test(query)) {
+      const text = toJsonText({
+        error: true,
+        message: "곡번호 검색 시 query는 숫자만 입력 가능합니다.",
+        query,
+        searchType,
+      });
+      return { content: [{ type: "text", text }], isError: true };
+    }
+
     try {
       const result = await searchSongs(query, searchType, page);
       const payload = {

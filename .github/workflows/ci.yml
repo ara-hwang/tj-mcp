@@ -1,17 +1,12 @@
-name: Publish to npm
+name: CI
 
 on:
-  workflow_dispatch:
   push:
-    tags:
-      - "v*"
-
-permissions:
-  contents: read
-  id-token: write
+    branches: [main]
+  pull_request:
 
 jobs:
-  publish:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,7 +16,6 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
           cache: npm
 
       - name: Install dependencies
@@ -34,8 +28,3 @@ jobs:
         run: npm test
         env:
           TJ_INTEGRATION: "1"
-
-      - name: Publish package
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

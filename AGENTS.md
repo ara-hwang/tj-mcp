@@ -6,7 +6,8 @@ This is **tj-mcp**, an MCP (Model Context Protocol) server that searches TJ Medi
 
 Source layout:
 
-- `src/index.ts` — MCP server, scraping (`fetchHtml`, `searchSongs`), tool handlers
+- `src/index.ts` — MCP server and tool handlers
+- `src/scrape.ts` — TJ site fetching (`fetchHtml`, `searchSongs`)
 - `src/parser.ts` — HTML parsing (`parseSongTable`, `parsePagination`, `uniqueSongs`)
 
 MCP tools:

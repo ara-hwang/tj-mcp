@@ -20,14 +20,36 @@ function toJsonText(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
-const server = new McpServer({
-  name: "tj-karaoke",
-  version: PACKAGE_VERSION,
-});
+const MCP_INSTRUCTIONS = [
+  "TJ Media(태진) 반주곡 검색 MCP 서버입니다.",
+  "",
+  "search_songs 사용 가이드:",
+  "- integrated: 제목·가수·곡번호를 한 번에 검색 (기본값)",
+  "- title / singer: 제목 또는 가수명만 검색할 때",
+  "- number: 곡번호만 검색 (query는 숫자만)",
+  "- 결과 0건이고 검색어에 공백이 있으면 공백 제거 후 자동 재시도 (retry 필드 참고)",
+  "- page로 페이지 이동 (pagination.hasNext 확인)",
+  "",
+  "lookup_song: 곡번호 한 건의 제목·가수·작사·작곡 조회",
+  "",
+  "응답은 content[0].text 의 JSON 문자열입니다. error: true 이면 isError입니다.",
+].join("\n");
+
+const server = new McpServer(
+  {
+    name: "tj-karaoke",
+    version: PACKAGE_VERSION,
+  },
+  { instructions: MCP_INSTRUCTIONS }
+);
 
 server.tool(
   "search_songs",
-  "태진 노래방 곡 검색 - 통합/곡제목/가수명/곡번호로 검색해 노래방 번호와 곡 정보를 반환합니다",
+  [
+    "태진 노래방 곡 검색.",
+    "searchType: integrated(통합, 기본) | title(곡제목) | singer(가수명) | number(곡번호, query 숫자만).",
+    "0건+공백 포함 시 공백 제거 재시도. pagination.hasNext 로 다음 페이지.",
+  ].join(" "),
   {
     query: z
       .string()
@@ -89,7 +111,7 @@ server.tool(
 
 server.tool(
   "lookup_song",
-  "태진 노래방 곡번호로 곡 정보 조회 - 곡번호를 입력하면 해당 곡의 제목, 가수, 작사가, 작곡가 정보를 반환합니다",
+  "태진 노래방 곡번호 단건 조회. songNumber(숫자)로 제목·가수·작사·작곡 반환. search_songs number 검색보다 단일 곡에 적합.",
   {
     songNumber: z
       .string()

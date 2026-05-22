@@ -7,10 +7,18 @@ All notable changes are documented here. Format loosely follows [Keep a Changelo
 ### Added
 
 - `CONTRIBUTING.md` (로컬 개발, 테스트, PR, 릴리스 가이드)
+- `SECURITY.md`, GitHub Issue/PR 템플릿
+- ESLint + Prettier (`npm run lint`, CI 연동)
+- `scripts/snapshot-fixture.mjs` (`npm run snapshot-fixture`) — TJ HTML fixture 갱신
+- `fetchSearchPageHtml` / `buildSearchUrl` (`src/scrape.ts`)
+- MCP 서버 `instructions` 및 도구 설명 보강
+- `search_songs` 라이브 통합 테스트 (`TJ_INTEGRATION=1`, 곡번호 `28329`)
 
 ### Changed
 
 - `README.md`, `AGENTS.md` 문서 정리 및 상호 링크
+- README CI/npm/Node 배지, `package.json` `homepage`/`bugs`
+- `prepublishOnly`에 `npm run lint` 포함
 
 ## [1.2.0] - 2026-05-22
 

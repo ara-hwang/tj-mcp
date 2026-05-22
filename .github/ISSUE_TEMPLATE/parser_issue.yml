@@ -1,0 +1,51 @@
+name: Parser / TJ site change
+description: HTML 구조 변경, 파싱 누락·깨짐
+title: "[Parser]: "
+labels: ["parser"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        TJ 검색 페이지 마크업 변경 시 fixture HTML을 첨부하거나 `npm run snapshot-fixture`로 생성한 파일 경로를 알려 주세요.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 증상
+      placeholder: 예) 곡 수 0건, 페이지네이션 totalPages 누락, 한글 깨짐
+    validations:
+      required: true
+
+  - type: input
+    id: query
+    attributes:
+      label: 재현 검색어
+      placeholder: "아이유"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: search_type
+    attributes:
+      label: searchType
+      options:
+        - integrated
+        - title
+        - singer
+        - number
+    validations:
+      required: true
+
+  - type: textarea
+    id: fixture
+    attributes:
+      label: Fixture / HTML
+      description: tests/fixtures/ 경로 또는 HTML 일부 (개인정보·세션 없이)
+
+  - type: checkboxes
+    id: tasks
+    attributes:
+      label: 기여 가능 여부
+      options:
+        - label: PR로 parser + fixture 수정 가능
+          required: false

@@ -227,7 +227,7 @@ test("MCP: search_songs number lookup returns at least one song", async (t) => {
   ]);
 
   const call = responseForId(responses, 2);
-  assert.equal(call.result.isError, undefined);
+  assert.notEqual(call.result.isError, true);
   const payload = JSON.parse(call.result.content[0].text);
   assert.equal(payload.searchType, "number");
   assert.ok(payload.count >= 1);

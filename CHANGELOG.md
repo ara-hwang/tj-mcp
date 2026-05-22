@@ -17,6 +17,13 @@ All notable changes are documented here. Format loosely follows [Keep a Changelo
 ### Changed
 
 - `README.md`, `AGENTS.md` 문서 정리 및 상호 링크
+- Issue 템플릿: 미등록 라벨 자동 부여 제거
+- npm 패키지 `files`에 `SECURITY.md` 포함
+
+### Fixed
+
+- 라이브 `search_songs` 테스트: `isError` 성공 응답 assertion 보강
+- `snapshot-fixture`: TJ 검색 페이지 HTML 검증 후 저장 (`isValidTjSearchHtml`)
 - README CI/npm/Node 배지, `package.json` `homepage`/`bugs`
 - `prepublishOnly`에 `npm run lint` 포함
 

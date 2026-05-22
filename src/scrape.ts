@@ -26,19 +26,33 @@ export interface SearchResult {
 
 export type SearchType = "title" | "singer" | "number" | "integrated";
 
-async function fetchHtml(url: string, init?: RequestInit): Promise<string> {
-  const res = await fetch(url, {
-    ...init,
-    signal: AbortSignal.timeout(60_000),
-    headers: {
-      "User-Agent": USER_AGENT,
-      ...(init?.headers as Record<string, string>),
-    },
-  });
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-  }
+const MAX_FETCH_ATTEMPTS = 3;
+const RETRY_BASE_MS = 500;
 
+export function isRetryableHttpStatus(status: number): boolean {
+  return status === 429 || (status >= 500 && status <= 599);
+}
+
+export function isRetryableFetchError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  const msg = error.message.toLowerCase();
+  return (
+    error.name === "TimeoutError" ||
+    error.name === "AbortError" ||
+    msg.includes("fetch failed") ||
+    msg.includes("econnreset") ||
+    msg.includes("etimedout") ||
+    msg.includes("network")
+  );
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function decodeHtmlResponse(res: Response): Promise<string> {
   const buf = Buffer.from(await res.arrayBuffer());
   const contentType = res.headers.get("content-type") || "";
   const charsetFromHeader = contentType
@@ -114,6 +128,48 @@ async function fetchHtml(url: string, init?: RequestInit): Promise<string> {
   return buf.toString("utf-8");
 }
 
+async function fetchHtml(url: string, init?: RequestInit): Promise<string> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt < MAX_FETCH_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(url, {
+        ...init,
+        signal: AbortSignal.timeout(60_000),
+        headers: {
+          "User-Agent": USER_AGENT,
+          ...(init?.headers as Record<string, string>),
+        },
+      });
+
+      if (!res.ok) {
+        const httpError = new Error(`HTTP ${res.status}: ${res.statusText}`);
+        if (
+          isRetryableHttpStatus(res.status) &&
+          attempt < MAX_FETCH_ATTEMPTS - 1
+        ) {
+          lastError = httpError;
+          await sleep(RETRY_BASE_MS * 2 ** attempt);
+          continue;
+        }
+        throw httpError;
+      }
+
+      return await decodeHtmlResponse(res);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      if (isRetryableFetchError(err) && attempt < MAX_FETCH_ATTEMPTS - 1) {
+        lastError = err;
+        await sleep(RETRY_BASE_MS * 2 ** attempt);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw lastError ?? new Error("TJ fetch failed after retries");
+}
+
 const PAGE_SIZE = 30;
 
 export async function searchSongs(
@@ -157,7 +213,7 @@ export async function searchSongs(
   };
 
   const primary = await requestSearch(query);
-  if (primary.songs.length > 0) {
+  if (primary.songs.length > 0 || searchType === "number") {
     return { ...primary, retry: { applied: false } };
   }
 

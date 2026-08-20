@@ -253,10 +253,6 @@ CI(`.github/workflows/ci.yml`)는 push/PR 시 Node 22에서 `TJ_INTEGRATION=1`�
 }
 ```
 
-## Contributing
-
-버그 수정, 파서 개선, 도구 추가 등 기여 절차는 [CONTRIBUTING.md](./CONTRIBUTING.md)를 참고하세요.
-
 ## Changelog
 
 버전별 변경 사항은 [CHANGELOG.md](./CHANGELOG.md)를 참고하세요.
@@ -264,25 +260,3 @@ CI(`.github/workflows/ci.yml`)는 push/PR 시 Node 22에서 `TJ_INTEGRATION=1`�
 ## License
 
 [MIT](./LICENSE)
-
-## npm 배포 자동화 (GitHub Actions)
-
-`.github/workflows/npm-publish.yml` 워크플로우가 포함되어 있습니다.
-
-- 트리거
-  - `v*` 태그 푸시 (예: `v1.2.0`)
-  - 수동 실행 (`workflow_dispatch`)
-- 동작
-  - `npm ci` -> `npm run build` -> `npm test` -> `npm publish --provenance --access public`
-
-### 사전 설정
-
-1. npm access token 발급 (`Automation` 권장)
-2. GitHub 저장소 `Settings > Secrets and variables > Actions`에 `NPM_TOKEN` 추가
-
-### 배포 예시
-
-```bash
-git tag v1.2.0
-git push origin v1.2.0
-```

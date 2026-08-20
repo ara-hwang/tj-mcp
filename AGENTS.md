@@ -58,4 +58,3 @@ printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion
 - **Lint**: ESLint 9 flat config + Prettier (`npm run lint`). TypeScript strict mode (`tsc`) via `npm run build`.
 - The project uses ESM (`"type": "module"` in `package.json`).
 - Requires **Node.js 20+** (`engines` in `package.json`).
-- **Contributing / releases**: see [CONTRIBUTING.md](./CONTRIBUTING.md) (branch workflow, fixtures, `TJ_INTEGRATION`, npm tag publish).

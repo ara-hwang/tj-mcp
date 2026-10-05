@@ -28,6 +28,8 @@ export type SearchType = "title" | "singer" | "number" | "integrated";
 
 const MAX_FETCH_ATTEMPTS = 3;
 const RETRY_BASE_MS = 500;
+// 시도당 타임아웃. 최악의 경우(3회 모두 타임아웃)에도 MCP 클라이언트 기본 요청 타임아웃(60초) 안에 끝나도록 설정
+const FETCH_TIMEOUT_MS = 15_000;
 
 /** TJ 반주곡 검색 결과 HTML인지 휴리스틱 검사 (fixture 스냅샷·디코딩 검증용) */
 export function isValidTjSearchHtml(html: string): boolean {
@@ -140,7 +142,7 @@ async function fetchHtml(url: string, init?: RequestInit): Promise<string> {
     try {
       const res = await fetch(url, {
         ...init,
-        signal: AbortSignal.timeout(60_000),
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         headers: {
           "User-Agent": USER_AGENT,
           ...(init?.headers as Record<string, string>),

@@ -1,6 +1,6 @@
 ## Cursor Cloud specific instructions
 
-Human-oriented setup, testing, and PR workflow: **[CONTRIBUTING.md](./CONTRIBUTING.md)**. User-facing tool API: **[README.md](./README.md)**.
+Human-oriented setup, testing, and user-facing tool API: **[README.md](./README.md)** (see the Dev section).
 
 ### Overview
 

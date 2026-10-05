@@ -6,6 +6,8 @@ All notable changes are documented here. Format loosely follows [Keep a Changelo
 
 ### Changed
 
+- 런타임 의존성 최소 버전 상향: `@modelcontextprotocol/sdk` ^1.32.1, `zod` ^4.6.5, `cheerio` ^1.2.0
+- `package-lock.json` 갱신 (기존 semver 범위 내 개발 의존성 업데이트 포함)
 - MCP 도구 등록을 deprecated `server.tool` → `server.registerTool`로 전환하고 `title`·`annotations`(`readOnlyHint`, `openWorldHint`) 추가
 - TJ fetch 시도당 타임아웃 60초 → 15초 (재시도 포함 최악의 경우에도 MCP 클라이언트 기본 타임아웃 60초 이내)
 - 작사·작곡 정보가 비어 있으면 `lyricist`/`composer` 필드를 빈 문자열 대신 생략

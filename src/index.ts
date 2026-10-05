@@ -43,30 +43,39 @@ const server = new McpServer(
   { instructions: MCP_INSTRUCTIONS }
 );
 
-server.tool(
+const TOOL_ANNOTATIONS = {
+  readOnlyHint: true,
+  openWorldHint: true,
+} as const;
+
+server.registerTool(
   "search_songs",
-  [
-    "태진 노래방 곡 검색.",
-    "searchType: integrated(통합, 기본) | title(곡제목) | singer(가수명) | number(곡번호, query 숫자만).",
-    "0건+공백 포함 시 공백 제거 재시도. pagination.hasNext 로 다음 페이지.",
-  ].join(" "),
   {
-    query: z
-      .string()
-      .min(1, "검색어는 1자 이상이어야 합니다")
-      .describe("검색어 (곡 제목, 가수명, 또는 곡번호)"),
-    searchType: z
-      .enum(["title", "singer", "integrated", "number"])
-      .default("integrated")
-      .describe(
-        "검색 유형: integrated(통합), title(곡제목), singer(가수명), number(곡번호)"
-      ),
-    page: z
-      .number()
-      .int()
-      .positive()
-      .default(1)
-      .describe("페이지 번호 (기본값: 1)"),
+    title: "TJ 노래방 곡 검색",
+    description: [
+      "태진 노래방 곡 검색.",
+      "searchType: integrated(통합, 기본) | title(곡제목) | singer(가수명) | number(곡번호, query 숫자만).",
+      "0건+공백 포함 시 공백 제거 재시도. pagination.hasNext 로 다음 페이지.",
+    ].join(" "),
+    annotations: TOOL_ANNOTATIONS,
+    inputSchema: {
+      query: z
+        .string()
+        .min(1, "검색어는 1자 이상이어야 합니다")
+        .describe("검색어 (곡 제목, 가수명, 또는 곡번호)"),
+      searchType: z
+        .enum(["title", "singer", "integrated", "number"])
+        .default("integrated")
+        .describe(
+          "검색 유형: integrated(통합), title(곡제목), singer(가수명), number(곡번호)"
+        ),
+      page: z
+        .number()
+        .int()
+        .positive()
+        .default(1)
+        .describe("페이지 번호 (기본값: 1)"),
+    },
   },
   async ({ query, searchType, page }) => {
     if (searchType === "number" && !/^\d+$/.test(query)) {
@@ -109,14 +118,19 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "lookup_song",
-  "태진 노래방 곡번호 단건 조회. songNumber(숫자)로 제목·가수·작사·작곡 반환. search_songs number 검색보다 단일 곡에 적합.",
   {
-    songNumber: z
-      .string()
-      .regex(/^\d+$/, "곡번호는 숫자만 입력 가능합니다")
-      .describe("조회할 곡번호 (숫자)"),
+    title: "TJ 노래방 곡번호 조회",
+    description:
+      "태진 노래방 곡번호 단건 조회. songNumber(숫자)로 제목·가수·작사·작곡 반환. search_songs number 검색보다 단일 곡에 적합.",
+    annotations: TOOL_ANNOTATIONS,
+    inputSchema: {
+      songNumber: z
+        .string()
+        .regex(/^\d+$/, "곡번호는 숫자만 입력 가능합니다")
+        .describe("조회할 곡번호 (숫자)"),
+    },
   },
   async ({ songNumber }) => {
     try {

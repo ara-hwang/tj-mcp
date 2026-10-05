@@ -6,15 +6,15 @@
 
 TJ Media (태진) 노래방 검색용 [MCP](https://modelcontextprotocol.io/) 서버입니다.
 
-최신 TJ 웹 경로(`https://www.tjmedia.com/song/accompaniment`) 기반으로 동작하며,
+최신 TJ 웹 경로(`https://www.tjmedia.com/song/accompaniment_search`) 기반으로 동작하며,
 MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 
 - [기능](#features)
 - [요구 사항](#requirements)
 - [클라이언트 설정](#mcp-client-config)
 - [도구 API](#tools)
+- [참고 사항](#notes)
 - [개발](#dev)
-- [기여하기](#contributing)
 - [변경 이력](#changelog)
 - [라이선스](#license)
 
@@ -116,7 +116,7 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
   "songs": [
     {
       "number": "28329",
-      "title": "迷宮バタフライ (しゅごキャラ! OST)",
+      "title": "迷宮バタフライ(しゅごキャラ! OST)",
       "singer": "水樹奈々",
       "lyricist": "PEACH-PIT,斉藤恵",
       "composer": "dAice"
@@ -138,13 +138,13 @@ MCP 도구 응답은 **항상 JSON 문자열** 형태로 반환됩니다.
 | `retry.applied`          | `boolean`                                         | 공백 제거 재시도 적용 여부 (`searchType`이 `number`면 항상 `false`) |
 | `retry.reason`           | `"no_results_with_spaces"` (optional)             | 공백 제거 재시도 사유                                               |
 | `retry.normalizedQuery`  | `string` (optional)                               | 공백 제거 재시도 시 사용된 검색어                                   |
+| `songs[].number`         | `string`                                          | 곡 번호                                                             |
+| `songs[].title`          | `string`                                          | 곡 제목                                                             |
+| `songs[].singer`         | `string`                                          | 가수명                                                              |
+| `songs[].lyricist`       | `string` (optional)                               | 작사가                                                              |
+| `songs[].composer`       | `string` (optional)                               | 작곡가                                                              |
 
 > HTTP 429/5xx·네트워크 오류에 대한 fetch 재시도는 서버 내부 동작이며, 응답 JSON의 `retry` 필드에는 포함되지 않습니다.
-> | `songs[].number` | `string` | 곡 번호 |
-> | `songs[].title` | `string` | 곡 제목 |
-> | `songs[].singer` | `string` | 가수명 |
-> | `songs[].lyricist` | `string` (optional) | 작사가 |
-> | `songs[].composer` | `string` (optional) | 작곡가 |
 
 ### 2) `lookup_song`
 

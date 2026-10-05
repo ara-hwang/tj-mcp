@@ -74,3 +74,17 @@ test("uniqueSongs: 같은 number+title+singer 중복 제거", () => {
 test("uniqueSongs: 빈 배열은 빈 배열", () => {
   assert.deepEqual(uniqueSongs([]), []);
 });
+
+test("parseSongTable: 작사·작곡이 비어 있으면 필드를 생략", () => {
+  const $ = cheerio.load(`
+    <li class="search-data-list"><ul class="grid-container list">
+      <li class="grid-item"><span class="num2 pc">12345</span></li>
+      <li class="grid-item title3"><p>노래</p></li>
+      <li class="grid-item title4 singer"><span>가수</span></li>
+      <li class="grid-item title5"><span> </span></li>
+      <li class="grid-item title6"><span>작곡가</span></li>
+    </ul></li>`);
+  assert.deepEqual(parseSongTable($), [
+    { number: "12345", title: "노래", singer: "가수", composer: "작곡가" },
+  ]);
+});

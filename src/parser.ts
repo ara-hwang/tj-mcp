@@ -43,8 +43,9 @@ export function parseSongTable($: cheerio.CheerioAPI): Song[] {
     const cleanNumber = number.trim();
     const cleanTitle = title.trim();
     const cleanSinger = singer.trim();
-    const cleanLyricist = lyricist?.trim();
-    const cleanComposer = composer?.trim();
+    // 빈 문자열은 필드 생략 (README: optional)
+    const cleanLyricist = lyricist?.trim() || undefined;
+    const cleanComposer = composer?.trim() || undefined;
 
     if (!cleanNumber || !cleanTitle || !cleanSinger) {
       return;
@@ -54,8 +55,8 @@ export function parseSongTable($: cheerio.CheerioAPI): Song[] {
       number: cleanNumber,
       title: cleanTitle,
       singer: cleanSinger,
-      lyricist: cleanLyricist,
-      composer: cleanComposer,
+      ...(cleanLyricist ? { lyricist: cleanLyricist } : {}),
+      ...(cleanComposer ? { composer: cleanComposer } : {}),
     });
   };
 

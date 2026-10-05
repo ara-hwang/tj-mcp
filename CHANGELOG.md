@@ -4,6 +4,20 @@ All notable changes are documented here. Format loosely follows [Keep a Changelo
 
 ## [Unreleased]
 
+### Changed
+
+- MCP 도구 등록을 deprecated `server.tool` → `server.registerTool`로 전환하고 `title`·`annotations`(`readOnlyHint`, `openWorldHint`) 추가
+- TJ fetch 시도당 타임아웃 60초 → 15초 (재시도 포함 최악의 경우에도 MCP 클라이언트 기본 타임아웃 60초 이내)
+- 작사·작곡 정보가 비어 있으면 `lyricist`/`composer` 필드를 빈 문자열 대신 생략
+
+### Removed
+
+- `CONTRIBUTING.md`, `SECURITY.md`, Issue/PR 템플릿 (npm `files`·`AGENTS.md`의 참조도 정리)
+
+### Fixed
+
+- README: 응답 필드 표 중 `songs[]` 행이 인용문으로 렌더링되던 문제, 목차의 깨진 `#contributing` 링크, TJ 검색 경로 표기
+
 ## [1.2.1] - 2026-05-22
 
 ### Added

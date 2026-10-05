@@ -238,6 +238,14 @@ TJ_INTEGRATION=1 npm test
 
 CI(`.github/workflows/ci.yml`)는 push/PR 시 Node 22에서 `TJ_INTEGRATION=1`로 전체 테스트를 돌립니다.
 
+### 배포
+
+npm 배포는 [Trusted Publisher](https://docs.npmjs.com/trusted-publishers)(OIDC)로 `.github/workflows/publish.yml`에서 수행합니다. npm 토큰은 사용하지 않습니다.
+
+1. `package.json` 버전과 `CHANGELOG.md`를 갱신해 main에 머지
+2. 같은 버전의 태그를 push (예: `git tag v1.3.0 && git push origin v1.3.0`)
+3. 워크플로우가 태그와 `package.json` 버전 일치를 확인한 뒤 lint·build·test 후 배포 (provenance 자동 생성)
+
 ### 로컬 클라이언트 연결 (개발용)
 
 저장소를 클론한 뒤 빌드하고, MCP 설정에서 `dist/index.js` 절대 경로를 지정합니다.

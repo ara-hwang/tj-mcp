@@ -1,0 +1,56 @@
+name: Publish to npm
+
+# npm Trusted Publisher(OIDC)로 배포합니다. NPM_TOKEN 시크릿은 필요하지 않습니다.
+# 이 파일명(publish.yml)은 npmjs.com의 Trusted Publisher 설정과 정확히 일치해야 합니다.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write # OIDC 토큰 발급 (Trusted Publisher 필수)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      TJ_INTEGRATION: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          # Trusted Publisher는 npm 11.5.1+ / Node 22.14+ 필요 (Node 24는 npm 11 포함)
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false # 릴리스 빌드에서는 캐시 미사용
+
+      - name: Verify tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          PKG_VERSION="v$(node -p "require('./package.json').version")"
+          if [ "$PKG_VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::태그($GITHUB_REF_NAME)와 package.json 버전($PKG_VERSION)이 다릅니다."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      # Trusted Publisher 사용 시 provenance가 자동 생성되므로 --provenance 불필요
+      - name: Publish package
+        run: npm publish --access public

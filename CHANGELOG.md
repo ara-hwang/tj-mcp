@@ -6,6 +6,7 @@ All notable changes are documented here. Format loosely follows [Keep a Changelo
 
 ### Changed
 
+- npm 배포를 Trusted Publisher(OIDC)로 전환: `.github/workflows/publish.yml` 추가, `NPM_TOKEN` 기반 `npm-publish.yml` 제거. 태그와 `package.json` 버전 일치 검사 추가
 - 개발 의존성 메이저 업데이트: `eslint` 10, `@eslint/js` 10, `globals` 17, TypeScript 7
   - typescript-eslint가 아직 TS 7을 지원하지 않아, 빌드는 TS 7(`@typescript/native` → `tsc`)로 하고 린트용 TypeScript API는 `@typescript/typescript6`(TS 6)를 함께 설치하는 공식 side-by-side 구성 사용
   - `eslint.config.js`: deprecated `tseslint.config()` → ESLint `defineConfig()`
